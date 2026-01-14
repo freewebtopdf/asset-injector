@@ -63,7 +63,21 @@ go build -o bin/server cmd/server/main.go
 ./bin/server
 ```
 
-### Option 2: Run with Docker
+### Option 2: Run with Docker (GitHub Container Registry)
+
+```bash
+# Pull the latest image
+docker pull ghcr.io/freewebtopdf/asset-injector:latest
+
+# Run the container
+docker run -d \
+  -p 8080:8080 \
+  -v $(pwd)/rules:/app/rules \
+  -v $(pwd)/data:/app/data \
+  ghcr.io/freewebtopdf/asset-injector:latest
+```
+
+### Option 3: Run with Docker Compose
 
 ```bash
 docker-compose -f deploy/docker-compose.yml up
