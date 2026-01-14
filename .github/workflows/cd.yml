@@ -126,7 +126,7 @@ jobs:
 
       - name: Upload scan report as artifact
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: container-scan-report
           path: |
