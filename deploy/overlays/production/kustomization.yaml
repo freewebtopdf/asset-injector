@@ -1,0 +1,32 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: asset-injector-production
+  annotations:
+    config.kubernetes.io/local-config: "true"
+
+resources:
+- ../../base
+- hpa.yaml
+
+namePrefix: "prod-"
+
+commonLabels:
+  app: asset-injector
+  component: microservice
+  environment: production
+
+replicas:
+- name: asset-injector
+  count: 3
+
+images:
+- name: ghcr.io/asset-injector/asset-injector
+  newTag: latest
+
+patches:
+- path: deployment-patch.yaml
+- path: configmap-patch.yaml
+
+namespace: asset-injector-production

@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  asset-injector:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    image: asset-injector:local
+    container_name: asset-injector
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - LOG_LEVEL=info
+      - LOG_FORMAT=json
+      - CACHE_MAX_SIZE=10000
+      - CACHE_TTL=1h
+      - CORS_ORIGINS=*
+      - DATA_DIR=/data
+    volumes:
+      - asset-data:/data
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+volumes:
+  asset-data:

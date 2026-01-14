@@ -1,0 +1,359 @@
+basePath: /
+definitions:
+  api.ErrorResponse:
+    description: Standard error response format
+    properties:
+      code:
+        example: VALIDATION_FAILED
+        type: string
+      details: {}
+      message:
+        example: Invalid input provided
+        type: string
+      status:
+        example: error
+        type: string
+    type: object
+  api.HealthResponse:
+    description: Health check response
+    properties:
+      status:
+        example: ok
+        type: string
+      timestamp:
+        example: "2023-01-01T12:00:00Z"
+        type: string
+    type: object
+  api.MetricsResponse:
+    description: System metrics response
+    properties:
+      cache:
+        properties:
+          hit_ratio:
+            example: 0.83
+            type: number
+          hits:
+            example: 1500
+            type: integer
+          max_size:
+            example: 10000
+            type: integer
+          misses:
+            example: 300
+            type: integer
+          size:
+            example: 800
+            type: integer
+        type: object
+      rules:
+        properties:
+          count:
+            example: 25
+            type: integer
+        type: object
+      uptime:
+        properties:
+          timestamp:
+            example: "2023-01-01T12:00:00Z"
+            type: string
+        type: object
+    type: object
+  api.ResolveRequest:
+    description: Request payload for URL pattern resolution
+    properties:
+      url:
+        example: https://example.com/page
+        type: string
+    required:
+    - url
+    type: object
+  api.ResolveResponse:
+    description: Response payload containing matched CSS/JS assets
+    properties:
+      cache_hit:
+        example: false
+        type: boolean
+      css:
+        example: '.banner { display: none; }'
+        type: string
+      js:
+        example: document.querySelector('.popup').remove();
+        type: string
+      rule_id:
+        example: 123e4567-e89b-12d3-a456-426614174000
+        type: string
+    type: object
+  api.RuleListResponse:
+    description: Response containing list of rules
+    properties:
+      count:
+        example: 5
+        type: integer
+      rules:
+        items:
+          $ref: '#/definitions/domain.Rule'
+        type: array
+    type: object
+  api.SuccessResponse:
+    description: Standard success response format
+    properties:
+      data: {}
+      status:
+        example: success
+        type: string
+    type: object
+  domain.Rule:
+    description: URL pattern matching rule configuration
+    properties:
+      created_at:
+        example: "2023-01-01T12:00:00Z"
+        type: string
+      css:
+        description: 100KB limit
+        example: '.banner { display: none; }'
+        maxLength: 102400
+        type: string
+      id:
+        example: 123e4567-e89b-12d3-a456-426614174000
+        type: string
+      js:
+        description: 100KB limit
+        example: document.querySelector('.popup').remove();
+        maxLength: 102400
+        type: string
+      pattern:
+        example: https://example.com/*
+        maxLength: 2048
+        minLength: 1
+        type: string
+      priority:
+        example: 1500
+        maximum: 10000
+        minimum: 0
+        type: integer
+      type:
+        enum:
+        - exact
+        - regex
+        - wildcard
+        example: exact
+        type: string
+      updated_at:
+        example: "2023-01-01T12:00:00Z"
+        type: string
+    required:
+    - id
+    - pattern
+    - type
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: High-performance microservice for URL pattern matching and CSS/JS asset
+    injection in Web-to-PDF pipelines
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: http://swagger.io/terms/
+  title: Asset Injector Microservice API
+  version: "1.0"
+paths:
+  /health:
+    get:
+      description: Returns the health status of the service
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Service is healthy
+          schema:
+            $ref: '#/definitions/api.HealthResponse'
+      summary: Health check
+      tags:
+      - System
+  /metrics:
+    get:
+      description: Returns system metrics including cache statistics and rule counts
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully retrieved metrics
+          schema:
+            allOf:
+            - $ref: '#/definitions/api.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/api.MetricsResponse'
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      summary: System metrics
+      tags:
+      - System
+  /v1/resolve:
+    post:
+      consumes:
+      - application/json
+      description: Matches a URL against configured rules and returns the most specific
+        CSS/JS assets
+      parameters:
+      - description: URL to resolve
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api.ResolveRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully resolved URL
+          schema:
+            allOf:
+            - $ref: '#/definitions/api.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/api.ResolveResponse'
+              type: object
+        "400":
+          description: Invalid request payload
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "422":
+          description: Validation failed
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      summary: Resolve URL pattern to CSS/JS assets
+      tags:
+      - Resolution
+  /v1/rules:
+    get:
+      description: Retrieves all configured URL matching rules
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully retrieved rules
+          schema:
+            allOf:
+            - $ref: '#/definitions/api.SuccessResponse'
+            - properties:
+                data:
+                  $ref: '#/definitions/api.RuleListResponse'
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      summary: List all rules
+      tags:
+      - Rules
+    post:
+      consumes:
+      - application/json
+      description: Creates a new URL matching rule or updates an existing one
+      parameters:
+      - description: Rule to create or update
+        in: body
+        name: rule
+        required: true
+        schema:
+          $ref: '#/definitions/domain.Rule'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Successfully created rule
+          schema:
+            allOf:
+            - $ref: '#/definitions/api.SuccessResponse'
+            - properties:
+                data:
+                  properties:
+                    rule:
+                      $ref: '#/definitions/domain.Rule'
+                  type: object
+              type: object
+        "400":
+          description: Invalid request payload
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "422":
+          description: Validation failed
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      summary: Create or update a rule
+      tags:
+      - Rules
+  /v1/rules/{id}:
+    delete:
+      description: Deletes a URL matching rule by its ID
+      parameters:
+      - description: Rule ID
+        format: uuid
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully deleted rule
+          schema:
+            allOf:
+            - $ref: '#/definitions/api.SuccessResponse'
+            - properties:
+                data:
+                  properties:
+                    message:
+                      type: string
+                    rule_id:
+                      type: string
+                  type: object
+              type: object
+        "404":
+          description: Rule not found
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "422":
+          description: Validation failed
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      summary: Delete a rule
+      tags:
+      - Rules
+schemes:
+- http
+- https
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
+tags:
+- description: URL pattern resolution operations
+  name: Resolution
+- description: Rule management operations
+  name: Rules
+- description: System health and metrics operations
+  name: System

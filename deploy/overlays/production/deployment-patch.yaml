@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: asset-injector
+  labels:
+    environment: production
+spec:
+  template:
+    metadata:
+      labels:
+        environment: production
+    spec:
+      containers:
+      - name: asset-injector
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "1000m"
+        env:
+        - name: ENVIRONMENT
+          value: "production"

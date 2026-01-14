@@ -1,0 +1,36 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: asset-injector-alerts
+  labels:
+    app: asset-injector
+spec:
+  groups:
+  - name: asset-injector
+    rules:
+    - alert: AssetInjectorHighErrorRate
+      expr: rate(http_requests_total{app="asset-injector",status=~"5.."}[5m]) / rate(http_requests_total{app="asset-injector"}[5m]) > 0.05
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: High error rate on Asset Injector
+        description: Error rate is above 5% for 5 minutes
+
+    - alert: AssetInjectorHighLatency
+      expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{app="asset-injector"}[5m])) > 0.5
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: High latency on Asset Injector
+        description: 95th percentile latency is above 500ms
+
+    - alert: AssetInjectorDown
+      expr: up{app="asset-injector"} == 0
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: Asset Injector is down
+        description: Asset Injector instance has been down for more than 1 minute

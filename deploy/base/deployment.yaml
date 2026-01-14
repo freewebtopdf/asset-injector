@@ -1,0 +1,127 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: asset-injector
+  labels:
+    app: asset-injector
+    component: microservice
+    version: v1
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: asset-injector
+  template:
+    metadata:
+      labels:
+        app: asset-injector
+        component: microservice
+        version: v1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        fsGroup: 65534
+      containers:
+      - name: asset-injector
+        image: ghcr.io/asset-injector/asset-injector:latest
+        imagePullPolicy: Always
+        ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        env:
+        - name: PORT
+          value: "8080"
+        - name: LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: asset-injector-config
+              key: log-level
+        - name: LOG_FORMAT
+          value: "json"
+        - name: CACHE_MAX_SIZE
+          valueFrom:
+            configMapKeyRef:
+              name: asset-injector-config
+              key: cache-max-size
+        - name: CACHE_TTL
+          valueFrom:
+            configMapKeyRef:
+              name: asset-injector-config
+              key: cache-ttl
+        - name: CORS_ORIGINS
+          valueFrom:
+            configMapKeyRef:
+              name: asset-injector-config
+              key: cors-origins
+        - name: DATA_DIR
+          value: "/data"
+        - name: SNAPSHOT_FILE
+          value: "snapshot.json"
+        - name: READ_TIMEOUT
+          value: "5s"
+        - name: WRITE_TIMEOUT
+          value: "5s"
+        - name: BODY_LIMIT
+          value: "1048576"
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+          successThreshold: 1
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 3
+          successThreshold: 1
+        startupProbe:
+          httpGet:
+            path: /health
+            port: http
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 12
+          successThreshold: 1
+        volumeMounts:
+        - name: data-storage
+          mountPath: /data
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 65534
+          runAsGroup: 65534
+          capabilities:
+            drop:
+            - ALL
+      volumes:
+      - name: data-storage
+        persistentVolumeClaim:
+          claimName: asset-injector-data
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30

@@ -1,0 +1,15 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: asset-injector
+  labels:
+    app: asset-injector
+spec:
+  selector:
+    matchLabels:
+      app: asset-injector
+  endpoints:
+  - port: http
+    path: /metrics
+    interval: 30s
+    scrapeTimeout: 10s

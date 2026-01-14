@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: asset-injector-config
+  labels:
+    app: asset-injector
+    component: microservice
+data:
+  # Logging configuration
+  log-level: "info"
+  log-format: "json"
+  
+  # Cache configuration
+  cache-max-size: "10000"
+  cache-ttl: "1h"
+  
+  # CORS configuration (default to allow all origins for base config)
+  cors-origins: "*"
+  
+  # Server configuration
+  read-timeout: "5s"
+  write-timeout: "5s"
+  body-limit: "1048576"
+  
+  # Storage configuration
+  data-dir: "/data"
+  snapshot-file: "snapshot.json"
+  
+  # Community configuration
+  rules-dir: "/data/rules"
+  local-rules-dir: "/data/rules/local"
+  community-rules-dir: "/data/rules/community"
+  override-rules-dir: "/data/rules/overrides"
+  community-repo-url: "https://api.github.com/repos/asset-injector/community-rules"
+  community-repo-timeout: "30s"
+  auto-update-packs: "false"
+  watch-rule-files: "false"

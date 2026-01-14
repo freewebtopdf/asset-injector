@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  asset-injector:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      target: builder
+    environment:
+      - LOG_LEVEL=debug
+      - LOG_FORMAT=console
+    volumes:
+      - ../:/app:cached
+      - asset-data:/data
+    command: ["go", "run", "./cmd/server"]

@@ -1,0 +1,49 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: asset-injector-staging
+  annotations:
+    config.kubernetes.io/local-config: "true"
+
+# Reference the base configuration
+bases:
+- ../../base
+
+# Staging-specific configuration
+namePrefix: "staging-"
+nameSuffix: ""
+
+commonLabels:
+  app: asset-injector
+  component: microservice
+  environment: staging
+
+# Override replica count for staging (1 replica)
+replicas:
+- name: asset-injector
+  count: 1
+
+# Staging-specific image tag
+images:
+- name: ghcr.io/asset-injector/asset-injector
+  newTag: staging
+
+# Staging-specific patches
+patchesStrategicMerge:
+- deployment-patch.yaml
+- configmap-patch.yaml
+
+# Staging-specific config map
+configMapGenerator:
+- name: asset-injector-config
+  behavior: merge
+  literals:
+  - log-level=debug
+  - cors-origins=https://staging.example.com,https://staging-admin.example.com
+  - cache-max-size=5000
+  - auto-update-packs=true
+  - watch-rule-files=true
+
+# Staging namespace
+namespace: asset-injector-staging

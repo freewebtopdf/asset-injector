@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: asset-injector-config
+  labels:
+    environment: staging
+data:
+  # Staging-specific logging (debug level for troubleshooting)
+  log-level: "debug"
+  
+  # Staging-specific CORS origins
+  cors-origins: "https://staging.example.com,https://staging-admin.example.com"
+  
+  # Smaller cache for staging environment
+  cache-max-size: "5000"
+  cache-ttl: "30m"
+  
+  # Staging-specific timeouts (more lenient for debugging)
+  read-timeout: "10s"
+  write-timeout: "10s"
+  
+  # Enable features for staging testing
+  auto-update-packs: "true"
+  watch-rule-files: "true"
+  
+  # Staging-specific community configuration
+  community-repo-timeout: "60s"

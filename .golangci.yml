@@ -1,0 +1,61 @@
+# golangci-lint configuration for Asset Injector Microservice
+# Compatible with golangci-lint v2.x
+version: "2"
+
+run:
+  timeout: 5m
+  tests: false  # Don't lint test files
+
+output:
+  formats:
+    colored-line-number:
+      path-prefix: ""
+  print-issued-lines: true
+  print-linter-name: true
+
+linters:
+  default: none
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+
+linters-settings:
+  errcheck:
+    check-type-assertions: false
+    check-blank: false
+    exclude-functions:
+      - os.Setenv
+      - os.Unsetenv
+      - os.RemoveAll
+      - os.Remove
+      - (io.Closer).Close
+      - (*os.File).Close
+      - (net/http.ResponseWriter).Write
+      - (*net/http.Response).Body.Close
+  
+  govet:
+    enable-all: false
+
+issues:
+  exclude-rules:
+    # Exclude benchmark file
+    - path: performance_benchmark\.go
+      linters:
+        - errcheck
+        - funlen
+        - noctx
+    # Exclude generated docs
+    - path: docs/
+      linters:
+        - lll
+  
+  max-issues-per-linter: 50
+  max-same-issues: 10

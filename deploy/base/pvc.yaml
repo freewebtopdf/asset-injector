@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: asset-injector-data
+  labels:
+    app: asset-injector
+    component: microservice
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: ""  # Use default storage class
+  volumeMode: Filesystem
