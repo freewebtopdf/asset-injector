@@ -34,7 +34,10 @@ RUN go mod download
 
 # Copy source code
 COPY . .
-RUN chmod -R 777 ./data
+
+# Create required directories
+RUN mkdir -p ./data/rules ./rules/local ./rules/community ./rules/overrides \
+    && chown -R 10001:10001 ./data ./rules
 
 # Build the application with optimizations
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
@@ -76,7 +79,10 @@ COPY --from=builder /etc/passwd /etc/passwd
 
 # Copy the binary from builder stage
 COPY --from=builder /build/asset-injector /asset-injector
-COPY --from=builder /build/data /data
+COPY --from=builder --chown=10001:10001 /build/data /data
+
+# Create required directories with correct ownership
+COPY --from=builder --chown=10001:10001 /build/rules /rules
 
 # Switch to non-root user for security
 USER appuser
