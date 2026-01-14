@@ -20,8 +20,8 @@ ENV HTTPS_PROXY=${HTTP_PROXY}
 # Install build dependencies
 RUN apk add --no-cache git ca-certificates tzdata
 
-# Create non-root user for build with specific UID
-RUN adduser -D -g '' -u 65534 appuser
+# Create non-root user for build with specific UID (65534 is reserved for nobody)
+RUN adduser -D -g '' -u 10001 appuser
 
 # Set working directory
 WORKDIR /build
@@ -78,7 +78,7 @@ COPY --from=builder /etc/passwd /etc/passwd
 COPY --from=builder /build/asset-injector /asset-injector
 COPY --from=builder /build/data /data
 
-# Switch to non-root user (UID 65534) for security
+# Switch to non-root user for security
 USER appuser
 
 # Expose port (default 8080)
